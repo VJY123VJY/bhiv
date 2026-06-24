@@ -9,8 +9,13 @@ from app.middleware import ApiKeyAuthMiddleware
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    await init_db()
+async def lifespan(app):
+    try:
+        # await init_db()
+        pass
+    except Exception as e:
+        print(e)
+
     yield
 
 
