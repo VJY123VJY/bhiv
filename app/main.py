@@ -8,11 +8,13 @@ from app.db.base import init_db
 from app.middleware import ApiKeyAuthMiddleware
 
 
+
+
 @asynccontextmanager
 async def lifespan(app):
     try:
-        # await init_db()
-        pass
+        # Ensure DB tables exist when running without migrations (local/dev).
+        await init_db()
     except Exception as e:
         print(e)
 
