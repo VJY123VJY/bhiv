@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 
 from app.core.config import settings
 from app.api.v1.router import api_router
@@ -30,6 +31,35 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=settings.APP_NAME,
+        version=settings.APP_VERSION,
+        description="BHIV Intelligence Data Universe Registry V1 — Canonical federated dataset metadata registry for the TANTRA ecosystem.",
+        routes=app.routes,
+    )
+
+    api_key_scheme = {
+        "type": "apiKey",
+        "name": "X-API-Key",
+        "in": "header",
+    }
+
+    openapi_schema["components"]["securitySchemes"] = {
+        "XApiKey": api_key_scheme
+    }
+    openapi_schema["security"] = [{"XApiKey": []}]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 app.add_middleware(
     CORSMiddleware,
