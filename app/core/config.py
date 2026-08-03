@@ -1,9 +1,6 @@
 from pydantic_settings import BaseSettings
-<<<<<<< HEAD
 from pydantic import field_validator
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
-=======
->>>>>>> db763b141a4bb42b0aca956a84f5f73a82c9f518
 
 class Settings(BaseSettings):
     APP_NAME: str = "BHIV Intelligence Data Universe Registry"
@@ -22,7 +19,6 @@ class Settings(BaseSettings):
     MDU_API_TIMEOUT: int = 10
     MDU_ALLOW_TRUST_LEVELS: list[str] = ["TRUSTED", "VERIFIED"]
 
-<<<<<<< HEAD
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def normalize_database_url(cls, value: str) -> str:
@@ -54,8 +50,6 @@ class Settings(BaseSettings):
         updated = parsed._replace(scheme=scheme, query=urlencode(query, doseq=True))
         return urlunparse(updated)
 
-=======
->>>>>>> db763b141a4bb42b0aca956a84f5f73a82c9f518
     class Config:
         env_file = ".env"
         case_sensitive = True
