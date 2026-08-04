@@ -1,6 +1,9 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
     APP_NAME: str = "BHIV Intelligence Data Universe Registry"
@@ -8,7 +11,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
 
-    DATABASE_URL: str = "postgresql+asyncpg://bhiv:bhiv_secret@localhost:5432/bhiv_registry"
+    DATABASE_URL: str = "postgresql+asyncpg://bhiv_user:XCDSC9O2DEqqcYr5eJdVQW5BnhN7pzJ0@dpg-d9o7s98ae00c73atq3j0-a.oregon-postgres.render.com/bhiv?sslmode=require"
 
     REGISTRY_ID: str = "BHIV-IDU-REGISTRY-V1"
     TANTRA_ECOSYSTEM_VERSION: str = "V1"
@@ -38,8 +41,15 @@ class Settings(BaseSettings):
             return value
 
         query = dict(parse_qsl(parsed.query, keep_blank_values=True))
-        if "sslmode" not in query:
-            query["sslmode"] = "require"
+
+        # asyncpg does not accept sslmode as a direct connect argument.
+        # Convert sslmode to ssl when using asyncpg and ensure SSL is required
+        # for non-local PostgreSQL hosts.
+        if "sslmode" in query:
+            query["ssl"] = query.pop("sslmode")
+
+        if "ssl" not in query:
+            query["ssl"] = "require"
 
         scheme = parsed.scheme
         if scheme == "postgres":

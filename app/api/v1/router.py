@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import datasets, schemas, relationships, discovery, onboarding, audit
+from app.api.v1.endpoints import datasets, schemas, relationships, discovery, onboarding, audit, bridge_flow
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(datasets.router)
@@ -8,3 +8,4 @@ api_router.include_router(relationships.router)
 api_router.include_router(discovery.router)
 api_router.include_router(onboarding.router)
 api_router.include_router(audit.router)
+api_router.include_router(bridge_flow.router)

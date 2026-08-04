@@ -8,6 +8,8 @@ Every request (successful or not) is logged to audit_logs
 with the resolved owner name, for ecosystem consumption evidence.
 """
 
+import re
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -32,8 +34,11 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
 
+        # Normalize repeated slashes so open paths like //docs still match.
+        normalized_path = re.sub(r'/+', '/', path)
+
         # Open paths bypass auth entirely, no audit log
-        if path in OPEN_PATHS or path.startswith("/docs") or path.startswith("/redoc"):
+        if normalized_path in OPEN_PATHS or normalized_path.startswith("/docs") or normalized_path.startswith("/redoc"):
             return await call_next(request)
 
         api_key_header = request.headers.get("x-api-key")

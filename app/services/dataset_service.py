@@ -35,7 +35,7 @@ class DatasetService:
 
         ingestion_ref = None
         if payload.ingestion_reference:
-            ingestion_ref = payload.ingestion_reference.model_dump()
+            ingestion_ref = payload.ingestion_reference.model_dump(mode="json")
 
         dataset = Dataset(
             canonical_id=payload.canonical_id,
@@ -147,7 +147,7 @@ class DatasetService:
 
         update_data = payload.model_dump(exclude_unset=True)
         if "ingestion_reference" in update_data and update_data["ingestion_reference"]:
-            update_data["ingestion_reference"] = payload.ingestion_reference.model_dump()
+            update_data["ingestion_reference"] = payload.ingestion_reference.model_dump(mode="json")
 
         for field, value in update_data.items():
             setattr(dataset, field, value)
