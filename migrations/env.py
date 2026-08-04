@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.db.base import Base
 from app.models import registry  # ensures all models are loaded
 from app.core.config import settings
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
 config = context.config
 
@@ -21,10 +22,24 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url from our settings
-config.set_main_option(
-    "sqlalchemy.url",
-    settings.DATABASE_URL.replace("postgresql+asyncpg", "postgresql+psycopg2")
-)
+# Convert the asyncpg URL to a psycopg2-compatible URL for Alembic
+db_url = settings.DATABASE_URL
+if "postgresql+asyncpg" in db_url:
+    parsed = urlparse(db_url)
+    scheme = "postgresql+psycopg2"
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+
+    # asyncpg variant uses `ssl` (we convert from sslmode->ssl earlier).
+    # psycopg2 expects `sslmode`, not `ssl`. Convert back when present.
+    if "ssl" in query:
+        query["sslmode"] = query.pop("ssl")
+
+    updated = parsed._replace(scheme=scheme, query=urlencode(query, doseq=True))
+    db_url_for_alembic = urlunparse(updated)
+else:
+    db_url_for_alembic = db_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+
+config.set_main_option("sqlalchemy.url", db_url_for_alembic)
 
 
 def run_migrations_offline() -> None:
